@@ -1,0 +1,4 @@
+cron:
+- description: "track bitcoin.de"
+  url: /task/track_btcde
+  schedule: every 1 minutes

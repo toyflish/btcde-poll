@@ -1,0 +1,17 @@
+runtime: python
+env: flex
+
+runtime_config:
+    python_version: 3
+
+entrypoint: gunicorn -b :$PORT main:app
+
+env_variables:
+  BTCDE_API_KEY: ''
+  BTCDE_API_SECRET: ''
+
+  SQLALCHEMY_DATABASE_URI: >-
+    mysql+pymysql://USER:PASSWORD@/DATABASE?unix_socket=/cloudsql/INSTANCE_CONNECTION_NAME
+
+beta_settings:
+    cloud_sql_instances: INSTANCE_CONNECTION_NAME
