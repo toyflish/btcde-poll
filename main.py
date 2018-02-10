@@ -70,7 +70,7 @@ def api_chart():
                           'min_buy_price': row.min_buy_price,
                           'max_sell_price': row.max_sell_price
                         })
-  return jsonify({'args': request.args, 'data': dict_result})
+  return jsonify(dict_result)
 
 @app.route('/task/track_btcde')
 def track_btcde():
