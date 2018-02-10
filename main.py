@@ -58,13 +58,13 @@ def api_chart():
                 "FROM chart "
                 "WHERE trading_pair=:trading_pair "
                 "AND time_frame=:time_frame "
-                "ORDER BY open_at ASC "
+                "ORDER BY open_at DESC "
                 "LIMIT :limit ")
 
   result = db.session.query(Chart).from_statement(query).params(trading_pair=trading_pair, time_frame=time_frame, limit=limit).all()
 
   dict_result = []
-  for row in result:
+  for row in reversed(result):
       dict_result.append({'trading_pair': row.trading_pair,
                           'open_at': int(row.open_at.strftime("%s")),
                           'min_buy_price': row.min_buy_price,
