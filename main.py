@@ -1,12 +1,11 @@
 import logging
 import os
-
 import datetime
 
-from flask import Flask, render_template, request
-from flask import jsonify
+from flask import Flask, render_template, request, jsonify, Response
 from flask_sqlalchemy import SQLAlchemy
 import sqlalchemy
+from sqlalchemy import text
 
 from orderbook import BtcdeOrderBook as bok
 
@@ -28,8 +27,9 @@ class Chart(db.Model):
   low = db.Column(currency)
   min_buy_price = db.Column(currency)
   max_sell_price = db.Column(currency)
+  time_frame = db.Column(db.Integer)
 
-  def __init__(self, trading_pair, open_at, open=None, close=None, high=None, low=None, min_buy_price=None, max_sell_price=None):
+  def __init__(self, trading_pair, open_at, open=None, close=None, high=None, low=None, min_buy_price=None, max_sell_price=None, time_frame=0):
     self.open_at = open_at
     self.trading_pair = trading_pair
     self.open = open
@@ -38,6 +38,39 @@ class Chart(db.Model):
     self.low = low
     self.min_buy_price = min_buy_price
     self.max_sell_price = max_sell_price
+    self.time_frame = time_frame
+
+
+@app.route('/')
+def api_root():
+    return 'Welcome Traders!'
+
+@app.route('/api/chart')
+def api_chart():
+  trading_pair = request.args.get('trading_pair', 'btceur')
+  limit        = request.args.get('limit', 24*60, type=int)
+  # max limit three days
+  if(limit > 24*60*3):
+    limit = 24*60*3
+  time_frame   = request.args.get('time_frame', 0, type=int)
+
+  query = text("SELECT id, trading_pair, open_at, min_buy_price, max_sell_price "
+                "FROM chart "
+                "WHERE trading_pair=:trading_pair "
+                "AND time_frame=:time_frame "
+                "ORDER BY open_at ASC "
+                "LIMIT :limit ")
+
+  result = db.session.query(Chart).from_statement(query).params(trading_pair=trading_pair, time_frame=time_frame, limit=limit).all()
+
+  dict_result = []
+  for row in result:
+      dict_result.append({'trading_pair': row.trading_pair,
+                          'open_at': int(row.open_at.strftime("%s")),
+                          'min_buy_price': row.min_buy_price,
+                          'max_sell_price': row.max_sell_price
+                        })
+  return jsonify({'args': request.args, 'data': dict_result})
 
 @app.route('/task/track_btcde')
 def track_btcde():
